@@ -1,0 +1,61 @@
+/// <reference types="cypress" />
+
+describe('Automation Exercise', () => {
+    //Cadastro
+    it.only('Register User', () => {
+        cy.visit("https://automationexercise.com/login")
+        cy.get('[data-qa="signup-name"]').type('E2E Classes')
+        cy.get('[data-qa="signup-email"]').type(`e2eclasses-${Date.now()}@gmail.com`)
+        cy.get('[data-qa="signup-button"]').click()
+        cy.get('#id_gender1').check()
+        cy.get('[data-qa="password"]').type('12345')
+        cy.get('[data-qa="days"]').select('1')
+        cy.get('[data-qa="months"]').select('September')
+        cy.get('[data-qa="years"]').select('1990')
+        cy.get('#newsletter').check()
+
+        cy.get('[data-qa="first_name"]').type('E2E')
+        cy.get('[data-qa="last_name"]').type('Classes')
+        cy.get('[data-qa="company"]').type('Test')
+        cy.get('[data-qa="address"]').type('Test addrs')
+        cy.get('[data-qa="address2"]').type('Addres 2')
+        cy.get('[data-qa="country"]').select('United States')
+        cy.get('[data-qa="state"]').type('Florida')
+        cy.get('[data-qa="city"]').type('Miami')
+        cy.get('[data-qa="zipcode"]').type('12345')
+        cy.get('[data-qa="mobile_number"]').type('12345678')
+        cy.get('[data-qa="create-account"]').click()
+        cy.get('[data-qa="account-created"]').should('be.visible')
+        cy.get('[data-qa="continue-button"]').click()
+        cy.get('a > b').should('contain', 'E2E Classes')
+    })
+    it('Login User with correct email and password', () => {
+        cy.visit("https://automationexercise.com/login")
+        cy.get('[data-qa="login-email"]').type('e2eclasses@gmail.com')
+        cy.get('[data-qa="login-password"]').type('12345')
+        cy.get('[data-qa="login-button"]').click()
+        cy.get('a > b').should('contain', 'E2E Classes')
+    })
+     it('Login User with incorrect email and password', () => {
+        cy.visit("https://automationexercise.com/login")
+        cy.get('[data-qa="login-email"]').type('e2eclasses@gmail.com')
+        cy.get('[data-qa="login-password"]').type('123')
+        cy.get('[data-qa="login-button"]').click()
+        cy.contains('Your email or password is incorrect!').should('be.visible')
+    })
+    it('Logout User', () => {
+        cy.visit("https://automationexercise.com/login")
+        cy.get('[data-qa="login-email"]').type('e2eclasses@gmail.com')
+        cy.get('[data-qa="login-password"]').type('12345')
+        cy.get('[data-qa="login-button"]').click()
+        cy.get('.fa-lock').should('be.visible').click()
+        cy.contains(' Signup / Login').should('be.visible')
+    })
+    it('Register User with existing email', () => {
+        cy.visit("https://automationexercise.com/login")
+        cy.get('[data-qa="signup-name"]').type('E2E Classes')
+        cy.get('[data-qa="signup-email"]').type(`e2eclasses@gmail.com`)
+        cy.get('[data-qa="signup-button"]').click()
+        cy.get('form[action*=signup] p').should('exist').should('be.visible').should('contain.text', 'Email Address already exist!')
+    })
+});

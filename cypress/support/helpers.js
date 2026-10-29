@@ -1,8 +1,8 @@
-export function getRandomEmail() {
+function getRandomEmail() {
     return `e2eclasses-${Date.now()}@gmail.com`
 }
 
-export function createUserData() {
+function createUserData() {
     return {
         name: 'E2E Classes',
         email: getRandomEmail(),
@@ -19,3 +19,15 @@ export function createUserData() {
         mobileNumber: '12345678'
     }
 }
+
+function createCardData(name) {
+    return {
+        name,
+        number: '4111111111111111',
+        cvc: '123',
+        month: '12',
+        year: '2030'
+    }
+}
+
+module.exports = { getRandomEmail, createUserData, createCardData }

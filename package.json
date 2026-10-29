@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "cy:open": "cypress open",
-    "test": "cypress run --spec cypress/e2e/automation-exercise-modules.cy.js"
+    "test": "cypress run"
   },
   "keywords": [],
   "author": "",

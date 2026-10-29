@@ -1,171 +1,145 @@
 /// <reference types="cypress" />
 
-import { createUserData, getRandomEmail } from '../support/helpers'
-import { goToLogin, goToProducts, goToCart, logout, deleteAccount } from '../modules/menu'
-import { fillLoginForm } from '../modules/login'
-import { fillSignupForm, fillAccountForm, registerUser } from '../modules/register'
-import { viewFirstProduct, searchProduct, addProductToCart } from '../modules/products'
-import { proceedToCheckout, placeOrder, fillPaymentForm } from '../modules/checkout'
-import { subscribe } from '../modules/subscription'
+const { createUserData, createCardData, getRandomEmail } = require('../support/helpers')
+const { visitHome, goToLogin, goToProducts, goToCart, logout, deleteAccount, validateLoggedInAs, validateAccountDeleted } = require('../modules/menu')
+const { fillLoginForm, validateLoginPageVisible, validateInvalidLoginMessage } = require('../modules/login')
+const { fillSignupForm, fillAccountForm, validateSignupPageVisible, validateAccountInfoPageVisible, validateAccountCreated, validateEmailAlreadyExists, registerUser } = require('../modules/register')
+const { viewFirstProduct, searchProduct, addProductToCart, validateAllProductsVisible, validateProductDetails, validateSearchResults } = require('../modules/products')
+const { proceedToCheckout, placeOrder, fillPaymentForm, validateCartItems, validateAddressAndReview, validateOrderPlaced } = require('../modules/checkout')
+const { subscribe, validateSubscriptionSection, validateSubscriptionSuccess } = require('../modules/subscription')
 
 describe('Automation Exercise', () => {
     let user
 
     beforeEach(() => {
         user = createUserData()
-        cy.visit('/', { retryOnStatusCodeFailure: true })
-        cy.get('#slider').should('be.visible')
+        visitHome()
     })
 
-    it('Test Case 1: Register User', () => {
+    it('Test Case 1: Register a new user, see the user logged in and delete the account', () => {
         goToLogin()
-        cy.contains('h2', 'New User Signup!').should('be.visible')
+        validateSignupPageVisible()
 
         fillSignupForm(user.name, user.email)
-        cy.contains('b', 'Enter Account Information').should('be.visible')
+        validateAccountInfoPageVisible()
 
         fillAccountForm(user)
-        cy.get('[data-qa="account-created"]').should('be.visible')
-        cy.get('[data-qa="continue-button"]').click()
-        cy.get('a > b').should('contain', user.name)
+        validateAccountCreated()
+        validateLoggedInAs(user.name)
 
         deleteAccount()
-        cy.get('[data-qa="account-deleted"]').should('be.visible')
-        cy.get('[data-qa="continue-button"]').click()
+        validateAccountDeleted()
     })
 
-    it('Test Case 2: Login User with correct email and password', () => {
+    it('Test Case 2: Login with correct email and password, see the user logged in and delete the account', () => {
         registerUser(user)
         logout()
 
         goToLogin()
-        cy.contains('h2', 'Login to your account').should('be.visible')
+        validateLoginPageVisible()
 
         fillLoginForm(user.email, user.password)
-        cy.get('a > b').should('contain', user.name)
+        validateLoggedInAs(user.name)
 
         deleteAccount()
-        cy.get('[data-qa="account-deleted"]').should('be.visible')
+        validateAccountDeleted()
     })
 
-    it('Test Case 3: Login User with incorrect email and password', () => {
+    it('Test Case 3: Login with incorrect email and password and see the error message', () => {
         goToLogin()
-        cy.contains('h2', 'Login to your account').should('be.visible')
+        validateLoginPageVisible()
 
         fillLoginForm(getRandomEmail(), '123')
-        cy.contains('Your email or password is incorrect!').should('be.visible')
+        validateInvalidLoginMessage()
     })
 
-    it('Test Case 4: Logout User', () => {
+    it('Test Case 4: Logout the user and go back to the login page', () => {
         registerUser(user)
         logout()
 
         goToLogin()
-        cy.contains('h2', 'Login to your account').should('be.visible')
-
         fillLoginForm(user.email, user.password)
-        cy.get('a > b').should('contain', user.name)
+        validateLoggedInAs(user.name)
 
         logout()
-        cy.url().should('include', '/login')
-        cy.contains('h2', 'Login to your account').should('be.visible')
+        validateLoginPageVisible()
     })
 
-    it('Test Case 5: Register User with existing email', () => {
+    it('Test Case 5: Register with an existing email and see the email already exists message', () => {
         registerUser(user)
         logout()
 
         goToLogin()
-        cy.contains('h2', 'New User Signup!').should('be.visible')
+        validateSignupPageVisible()
 
         fillSignupForm(user.name, user.email)
-        cy.get('form[action*=signup] p').should('be.visible').and('contain.text', 'Email Address already exist!')
+        validateEmailAlreadyExists()
     })
 
-    it('Test Case 8: Verify All Products and product detail page', () => {
+    it('Test Case 8: Open all products and see the first product details', () => {
         goToProducts()
-        cy.url().should('include', '/products')
-        cy.contains('h2', 'All Products').should('be.visible')
-        cy.get('.features_items .product-image-wrapper').should('have.length.greaterThan', 0)
+        validateAllProductsVisible()
 
         viewFirstProduct()
-        cy.url().should('include', '/product_details/1')
-        cy.get('.product-information h2').should('be.visible')
-        cy.get('.product-information').should('contain', 'Category:')
-            .and('contain', 'Rs.')
-            .and('contain', 'Availability:')
-            .and('contain', 'Condition:')
-            .and('contain', 'Brand:')
+        validateProductDetails()
     })
 
-    it('Test Case 9: Search Product', () => {
+    it('Test Case 9: Search a product and see only related products', () => {
         goToProducts()
-        cy.url().should('include', '/products')
-        cy.contains('h2', 'All Products').should('be.visible')
+        validateAllProductsVisible()
 
         searchProduct('Jeans')
-        cy.contains('h2', 'Searched Products').should('be.visible')
-        cy.get('.features_items .productinfo p').should('have.length.greaterThan', 0)
-            .each(($product) => {
-                expect($product.text().toLowerCase()).to.contain('jeans')
-            })
+        validateSearchResults('Jeans')
     })
 
-    it('Test Case 10: Verify Subscription in home page', () => {
+    it('Test Case 10: Subscribe in the home page footer and see the success message', () => {
+        validateSubscriptionSection()
+
         subscribe(user.email)
-        cy.contains('h2', 'Subscription').should('be.visible')
-        cy.get('#success-subscribe').should('be.visible').and('contain', 'You have been successfully subscribed!')
+        validateSubscriptionSuccess()
     })
 
-    it('Test Case 15: Place Order: Register before Checkout', () => {
+    it('Test Case 15: Register before checkout, place the order and delete the account', () => {
         registerUser(user)
-        cy.get('a > b').should('contain', user.name)
+        validateLoggedInAs(user.name)
 
         addProductToCart(1)
         addProductToCart(2)
         goToCart()
-        cy.url().should('include', '/view_cart')
-        cy.get('#cart_info_table tbody tr').should('have.length', 2)
+        validateCartItems(2)
 
         proceedToCheckout()
-        cy.get('#address_delivery').should('contain', user.address).and('contain', user.city)
-        cy.contains('h2', 'Review Your Order').should('be.visible')
+        validateAddressAndReview(user)
 
         placeOrder('Order placed by automated test')
-        fillPaymentForm(user.name)
-        cy.get('[data-qa="order-placed"]').should('be.visible')
-        cy.contains('Congratulations! Your order has been confirmed!').should('be.visible')
+        fillPaymentForm(createCardData(user.name))
+        validateOrderPlaced()
 
         deleteAccount()
-        cy.get('[data-qa="account-deleted"]').should('be.visible')
-        cy.get('[data-qa="continue-button"]').click()
+        validateAccountDeleted()
     })
 
-    it('Test Case 16: Place Order: Login before Checkout', () => {
+    it('Test Case 16: Login before checkout, place the order and delete the account', () => {
         registerUser(user)
         logout()
 
         goToLogin()
         fillLoginForm(user.email, user.password)
-        cy.get('a > b').should('contain', user.name)
+        validateLoggedInAs(user.name)
 
         addProductToCart(1)
         addProductToCart(2)
         goToCart()
-        cy.url().should('include', '/view_cart')
-        cy.get('#cart_info_table tbody tr').should('have.length', 2)
+        validateCartItems(2)
 
         proceedToCheckout()
-        cy.get('#address_delivery').should('contain', user.address).and('contain', user.city)
-        cy.contains('h2', 'Review Your Order').should('be.visible')
+        validateAddressAndReview(user)
 
         placeOrder('Order placed by automated test')
-        fillPaymentForm(user.name)
-        cy.get('[data-qa="order-placed"]').should('be.visible')
-        cy.contains('Congratulations! Your order has been confirmed!').should('be.visible')
+        fillPaymentForm(createCardData(user.name))
+        validateOrderPlaced()
 
         deleteAccount()
-        cy.get('[data-qa="account-deleted"]').should('be.visible')
-        cy.get('[data-qa="continue-button"]').click()
+        validateAccountDeleted()
     })
 })

@@ -1,19 +1,56 @@
-export function goToLogin() {
-    cy.get('a[href="/login"]').click()
+const seletores = {
+    slider: '#slider',
+    login: 'a[href="/login"]',
+    products: 'a[href="/products"]',
+    cart: '.shop-menu a[href="/view_cart"]',
+    logout: 'a[href="/logout"]',
+    deleteAccount: 'a[href="/delete_account"]',
+    loggedUser: 'a > b',
+    accountDeleted: '[data-qa="account-deleted"]',
+    continueButton: '[data-qa="continue-button"]'
 }
 
-export function goToProducts() {
-    cy.get('a[href="/products"]').click()
+function visitHome() {
+    cy.visit('/', { retryOnStatusCodeFailure: true })
+    cy.get(seletores.slider).should('be.visible')
 }
 
-export function goToCart() {
-    cy.get('.shop-menu a[href="/view_cart"]').click()
+function goToLogin() {
+    cy.get(seletores.login).click()
 }
 
-export function logout() {
-    cy.get('a[href="/logout"]').click()
+function goToProducts() {
+    cy.get(seletores.products).click()
 }
 
-export function deleteAccount() {
-    cy.get('a[href="/delete_account"]').click()
+function goToCart() {
+    cy.get(seletores.cart).click()
+}
+
+function logout() {
+    cy.get(seletores.logout).click()
+}
+
+function deleteAccount() {
+    cy.get(seletores.deleteAccount).click()
+}
+
+function validateLoggedInAs(name) {
+    cy.get(seletores.loggedUser).should('contain', name)
+}
+
+function validateAccountDeleted() {
+    cy.get(seletores.accountDeleted).should('be.visible')
+    cy.get(seletores.continueButton).click()
+}
+
+module.exports = {
+    visitHome,
+    goToLogin,
+    goToProducts,
+    goToCart,
+    logout,
+    deleteAccount,
+    validateLoggedInAs,
+    validateAccountDeleted
 }
